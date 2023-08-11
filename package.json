@@ -4,11 +4,14 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build -c production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "jest"
+  },
+  "engines": {
+    "node": ">=18 <20"
   },
   "private": true,
   "dependencies": {
@@ -21,8 +24,8 @@
     "@angular/platform-browser": "^16.0.4",
     "@angular/platform-browser-dynamic": "^16.0.4",
     "@angular/router": "^16.0.4",
-    "@azure/msal-angular": "^3.0.0",
-    "@azure/msal-browser": "^3.0.0-alpha.1",
+    "@azure/msal-angular": "3.0.0-beta.1",
+    "@azure/msal-browser": "^3.0.0",
     "rxjs": "~7.8.0",
     "ts-node": "^10.9.1",
     "tslib": "^2.3.0",
