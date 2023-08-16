@@ -15,7 +15,6 @@ import { ProfileComponent } from './profile/profile.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation, LogLevel } from '@azure/msal-browser';
 import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration, MsalRedirectComponent } from '@azure/msal-angular';
-import { FailedComponent } from './failed/failed.component';
 import { environment } from 'src/environments/environment';
 
 const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1; // Remove this line to use Angular Universal
@@ -37,7 +36,6 @@ export function MSALInstanceFactory(): IPublicClientApplication {
       storeAuthStateInCookie: isIE, // set to true for IE 11. Remove this line to use Angular Universal
     },
     system: {
-      allowNativeBroker: false, // Disables WAM Broker
       loggerOptions: {
         loggerCallback,
         logLevel: LogLevel.Info,
@@ -70,8 +68,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   declarations: [
     AppComponent,
     HomeComponent,
-    ProfileComponent,
-    FailedComponent
+    ProfileComponent
   ],
   imports: [
     BrowserModule,

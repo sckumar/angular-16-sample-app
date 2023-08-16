@@ -13,7 +13,7 @@ export class HomeComponent implements OnInit {
 
   constructor(private authService: MsalService, private msalBroadcastService: MsalBroadcastService) { }
 
-  ngOnInit(): void {
+  ngOnInit(): void {   
     this.msalBroadcastService.msalSubject$
       .pipe(
         filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS),
@@ -23,17 +23,16 @@ export class HomeComponent implements OnInit {
         const payload = result.payload as AuthenticationResult;
         this.authService.instance.setActiveAccount(payload.account);
       });
-    
+
     this.msalBroadcastService.inProgress$
       .pipe(
         filter((status: InteractionStatus) => status === InteractionStatus.None)
       )
       .subscribe(() => {
         this.setLoginDisplay();
-      })
-    
+      });
   }
-  
+
   setLoginDisplay() {
     this.loginDisplay = this.authService.instance.getAllAccounts().length > 0;
   }

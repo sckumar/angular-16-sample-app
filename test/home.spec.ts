@@ -1,9 +1,9 @@
 import * as puppeteer from "puppeteer";
-import {Screenshot, setupCredentials, enterCredentials, RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
-import { LabClient } from "e2e-test-utils/src/LabClient";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
-import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
+import { Screenshot, setupCredentials, enterCredentials } from "../../../e2eTestUtils/TestUtils";
+import { LabClient } from "../../../e2eTestUtils/LabClient";
+import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
+import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
+import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/home-tests`;
 
@@ -15,11 +15,11 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(8);
+    expect(Object.keys(storage).length).toBe(6);
 }
 
 describe('/ (Home Page)', () => {
-    jest.retryTimes(RETRY_TIMES);
+    jest.retryTimes(1);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -35,7 +35,7 @@ describe('/ (Home Page)', () => {
         port = global.__PORT__;
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
+            azureEnvironment: AzureEnvironments.PPE,
             appType: AppTypes.CLOUD
         };
 
@@ -58,37 +58,27 @@ describe('/ (Home Page)', () => {
         await context.close();
     });
 
-    it("Home page - children are rendered after logging in with loginRedirect", async (): Promise<void> => {
+    it("Home page - children are rendered after logging in with loginRedirect", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
         const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
-        if (signInButton) {
-            await signInButton.click();
-        }
-
+        await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const loginRedirectButton = await page.waitForSelector("xpath=//button[contains(., 'Login using Redirect')]");
-        if (loginRedirectButton) {
-            await loginRedirectButton.click();
-        }
+        const loginRedirectButton = await page.waitForSelector("xpath=//div//button[contains(., 'Login using Redirect')]");
+        await loginRedirectButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//p[contains(., 'Login successful!')]");
+        page.waitForXPath("//p[contains(., 'Login successful!')]");
         const logoutButton = await page.waitForSelector("xpath=//button[contains(., 'Logout')]");
-        if (logoutButton) {
-            await logoutButton.click();
-        }
-        await page.waitForXPath("//button[contains(., 'Logout using')]");
-        const logoutButtons = await page.$x("//button[contains(., 'Logout using')]");
+        await logoutButton.click();
+        const logoutButtons = await page.$x("//div//button[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);
-        if (logoutButton) {
-            await logoutButton.click();
-        }
+        await logoutButton.click();
         await screenshot.takeScreenshot(page, "App signed in");
 
         // Verify tokens are in cache
@@ -96,29 +86,25 @@ describe('/ (Home Page)', () => {
 
         // Navigate to profile page
         const profileButton = await page.waitForSelector("xpath=//span[contains(., 'Profile')]");
-        if (profileButton) {
-            await profileButton.click();
-        }
+        await profileButton.click();
         await screenshot.takeScreenshot(page, "Profile page loaded");
 
         // Verify displays profile page without activating MsalGuard
         await page.waitForXPath("//strong[contains(., 'First Name: ')]");
     });
 
-    it("Home page - children are rendered after logging in with loginPopup", async (): Promise<void> => {
+    it("Home page - children are rendered after logging in with loginPopup", async () => {
         const testName = "popupBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
         const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
-        await signInButton?.click();
+        await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
         const loginPopupButton = await page.waitForSelector("xpath=//button[contains(., 'Login using Popup')]");
         const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
-        if (loginPopupButton) {
-            await loginPopupButton.click();
-        }
+        await loginPopupButton.click();
         const popupPage = await newPopupWindowPromise;
         const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
 
@@ -131,14 +117,10 @@ describe('/ (Home Page)', () => {
         // Verify UI now displays logged in content
         await page.waitForXPath("//p[contains(., 'Login successful!')]");
         const logoutButton = await page.waitForSelector("xpath=//button[contains(., 'Logout')]");
-        if (logoutButton) {
-            await logoutButton.click();
-        }
+        await logoutButton.click();
         const logoutButtons = await page.$x("//button[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);
-        if (logoutButton) {
-            await logoutButton.click();
-        }
+        await logoutButton.click();
         await screenshot.takeScreenshot(page, "App signed in");
 
         // Verify tokens are in cache
@@ -146,9 +128,7 @@ describe('/ (Home Page)', () => {
 
         // Navigate to profile page
         const profileButton = await page.waitForSelector("xpath=//span[contains(., 'Profile')]");
-        if (profileButton) {
-            await profileButton.click();
-        }
+        await profileButton.click();
         await screenshot.takeScreenshot(page, "Profile page loaded");
 
         // Verify displays profile page without activating MsalGuard

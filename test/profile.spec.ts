@@ -1,9 +1,9 @@
 import * as puppeteer from "puppeteer";
-import {Screenshot, setupCredentials, enterCredentials, RETRY_TIMES} from "e2e-test-utils/src/TestUtils";
-import { LabClient } from "e2e-test-utils/src/LabClient";
-import { LabApiQueryParams } from "e2e-test-utils/src/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "e2e-test-utils/src/Constants";
-import { BrowserCacheUtils } from "e2e-test-utils/src/BrowserCacheTestUtils";
+import { Screenshot, setupCredentials, enterCredentials } from "../../../e2eTestUtils/TestUtils";
+import { LabClient } from "../../../e2eTestUtils/LabClient";
+import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
+import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
+import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/profile-tests`;
 
@@ -15,11 +15,11 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(9);
+    expect(Object.keys(storage).length).toBe(7);
 }
 
 describe('/ (Profile Page)', () => {
-    jest.retryTimes(RETRY_TIMES);
+    jest.retryTimes(1);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -35,7 +35,7 @@ describe('/ (Profile Page)', () => {
         port = global.__PORT__;
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
+            azureEnvironment: AzureEnvironments.PPE,
             appType: AppTypes.CLOUD
         };
 
@@ -57,7 +57,7 @@ describe('/ (Profile Page)', () => {
         await context.close();
     });
 
-    it("Profile page - children are rendered after profile button clicked and logging in with loginRedirect", async (): Promise<void> => {
+    it("Profile page - children are rendered after profile button clicked and logging in with loginRedirect", async () => {
         await page.goto(`http://localhost:${port}`);
 
         const testName = "profileButtonRedirectCase";
@@ -66,9 +66,7 @@ describe('/ (Profile Page)', () => {
 
         // Initiate Login via MsalGuard by clicking Profile
         const profileButton = await page.waitForSelector("xpath=//span[contains(., 'Profile')]");
-        if (profileButton) {
-            await profileButton.click();
-        }
+        await profileButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
 
